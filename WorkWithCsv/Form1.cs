@@ -10,7 +10,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 
-namespace WorkWithCsv
+
+namespace ReVIOS
 {
     public partial class Form1 : Form
     {
@@ -74,6 +75,11 @@ namespace WorkWithCsv
                     writer.WriteRecord(f);
                 }
             }
+        }
+
+        private void fieldsBindingSource_CurrentChanged(object sender, EventArgs e)
+        {
+
         }
     }
 }
