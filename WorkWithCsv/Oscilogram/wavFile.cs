@@ -1,110 +1,240 @@
 ﻿using System;
 using System.IO;
 using System.Runtime.InteropServices;
+using System.Windows.Forms;
+using System.Collections;
+using System.ComponentModel;
+using System.Drawing;
+using System.Data;
+using NAudio.Wave;
+
 
 namespace ReVIOS
-{
-    [StructLayout(LayoutKind.Sequential)]
-    // Структура, описывающая заголовок WAV файла.
-    internal class WavHeader
+{ /// <summary>
+  /// Control for viewing waveforms
+  /// </summary>
+    public class CustomWaveViewer : UserControl
     {
-        // WAV-формат начинается с RIFF-заголовка:
+        public Color PenColor { get; set; }
+        public float PenWidth { get; set; }
 
-        // Содержит символы "RIFF" в ASCII кодировке
-        // (0x52494646 в big-endian представлении)
-        public UInt32 ChunkId;
-
-        // 36 + subchunk2Size, или более точно:
-        // 4 + (8 + subchunk1Size) + (8 + subchunk2Size)
-        // Это оставшийся размер цепочки, начиная с этой позиции.
-        // Иначе говоря, это размер файла - 8, то есть,
-        // исключены поля chunkId и chunkSize.
-        public UInt32 ChunkSize;
-
-        // Содержит символы "WAVE"
-        // (0x57415645 в big-endian представлении)
-        public UInt32 Format;
-
-        // Формат "WAVE" состоит из двух подцепочек: "fmt " и "data":
-        // Подцепочка "fmt " описывает формат звуковых данных:
-
-        // Содержит символы "fmt "
-        // (0x666d7420 в big-endian представлении)
-        public UInt32 Subchunk1Id;
-
-        // 16 для формата PCM.
-        // Это оставшийся размер подцепочки, начиная с этой позиции.
-        public UInt32 Subchunk1Size;
-
-        // Аудио формат, полный список можно получить здесь http://audiocoding.ru/wav_formats.txt
-        // Для PCM = 1 (то есть, Линейное квантование).
-        // Значения, отличающиеся от 1, обозначают некоторый формат сжатия.
-        public UInt16 AudioFormat;
-
-        // Количество каналов. Моно = 1, Стерео = 2 и т.д.
-        public UInt16 NumChannels;
-
-        // Частота дискретизации. 8000 Гц, 44100 Гц и т.д.
-        public UInt32 SampleRate;
-
-        // sampleRate * numChannels * bitsPerSample/8
-        public UInt32 ByteRate;
-
-        // numChannels * bitsPerSample/8
-        // Количество байт для одного сэмпла, включая все каналы.
-        public UInt16 BlockAlign;
-
-        // Так называемая "глубиная" или точность звучания. 8 бит, 16 бит и т.д.
-        public UInt16 BitsPerSample;
-
-        // Подцепочка "data" содержит аудио-данные и их размер.
-
-        // Содержит символы "data"
-        // (0x64617461 в big-endian представлении)
-        public UInt32 Subchunk2Id;
-
-        // numSamples * numChannels * bitsPerSample/8
-        // Количество байт в области данных.
-        public UInt32 Subchunk2Size;
-
-        // Далее следуют непосредственно Wav данные.
-    }
-
-    class WavHeaderInit
-    {
-        static void Main(string[] args)
+        public void FitToScreen()
         {
-            var header = new WavHeader();
-            // Размер заголовка
-            var headerSize = Marshal.SizeOf(header);
+            if (waveStream == null) return;
 
-            var fileStream = new FileStream("Slipknot - Three Nil.wav", FileMode.Open, FileAccess.Read);
-            var buffer = new byte[headerSize];
-            fileStream.Read(buffer, 0, headerSize);
-
-            // Чтобы не считывать каждое значение заголовка по отдельности,
-            // воспользуемся выделением unmanaged блока памяти
-            var headerPtr = Marshal.AllocHGlobal(headerSize);
-            // Копируем считанные байты из файла в выделенный блок памяти
-            Marshal.Copy(buffer, 0, headerPtr, headerSize);
-            // Преобразовываем указатель на блок памяти к нашей структуре
-            Marshal.PtrToStructure(headerPtr, header);
-
-            // Выводим полученные данные
-            Console.WriteLine("Sample rate: {0}", header.SampleRate);
-            Console.WriteLine("Channels: {0}", header.NumChannels);
-            Console.WriteLine("Bits per sample: {0}", header.BitsPerSample);
-
-            // Посчитаем длительность воспроизведения в секундах
-            var durationSeconds = 1.0 * header.Subchunk2Size / (header.BitsPerSample / 8.0) / header.NumChannels / header.SampleRate;
-            var durationMinutes = (int)Math.Floor(durationSeconds / 60);
-            durationSeconds = durationSeconds - (durationMinutes * 60);
-            Console.WriteLine("Duration: {0:00}:{1:00}", durationMinutes, durationSeconds);
-
-            Console.ReadKey();
-
-            // Освобождаем выделенный блок памяти
-            Marshal.FreeHGlobal(headerPtr);
+            int samples = (int)(waveStream.Length / bytesPerSample); //определение количества срезов в дорожке
+            startPosition = 0; //отсчет от начала дорожки
+            SamplesPerPixel = samples / this.Width; // Вмещаем срезы в ширину окна
         }
+
+        public void Zoom(int leftSample, int rightSample)
+        {
+            startPosition = leftSample * bytesPerSample;
+            SamplesPerPixel = (rightSample - leftSample) / this.Width;
+
+        }
+
+        private Point mousePos, startPos;
+        private bool mouseDrag = false;
+
+        protected override void OnMouseDown(MouseEventArgs e)
+        {
+            if (e.Button == MouseButtons.Left)
+            {
+                startPos = e.Location;
+                mousePos = new Point(-1, -1);
+                mouseDrag = true;
+                DrawVerticalLine(e.X);
+            }
+            base.OnMouseDown(e);
+        }
+        protected override void OnMouseMove(MouseEventArgs e)
+        {
+            if (mouseDrag)
+            {
+                DrawVerticalLine(e.X);
+                if (mousePos.X != -1) DrawVerticalLine(mousePos.X);
+                mousePos = e.Location;
+            }
+            base.OnMouseMove(e);
+        }
+
+        protected override void OnMouseUp(MouseEventArgs e)
+        {
+            if (mouseDrag && e.Button == MouseButtons.Left)
+            {
+                mouseDrag = false;
+                DrawVerticalLine(startPos.X);
+
+                if (mousePos.X == -1) return;
+                DrawVerticalLine(mousePos.X);
+
+
+                int leftSample = (int)(StartPosition / bytesPerSample + samplesPerPixel * Math.Min(startPos.X, mousePos.X));
+                int rightSample = (int)(StartPosition / bytesPerSample + samplesPerPixel * Math.Max(startPos.X, mousePos.X));
+                Zoom(leftSample, rightSample);
+            }
+
+            else if (e.Button == MouseButtons.Middle) FitToScreen();
+            base.OnMouseUp(e);
+        }
+
+
+        private void DrawVerticalLine(int x)
+        {
+            ControlPaint.DrawReversibleLine(PointToScreen(new Point(x, 0)), PointToScreen(new Point(x, Height)), Color.Black);
+        }
+        protected override void OnResize(EventArgs e)
+        {
+            base.OnResize(e);
+            FitToScreen();
+        }
+
+
+
+        /// <summary> 
+        /// Required designer variable.
+        /// </summary>
+        private Container components = null;
+        private WaveStream waveStream;
+        private int samplesPerPixel = 128;
+        private long startPosition;
+        private int bytesPerSample;
+        /// <summary>
+        /// Creates a new WaveViewer control
+        /// </summary>
+        public CustomWaveViewer()
+        {
+            // This call is required by the Windows.Forms Form Designer.
+            InitializeComponent();
+            this.DoubleBuffered = true;
+
+            this.PenColor = Color.DodgerBlue;
+            this.PenWidth = 1;
+        }
+
+        /// <summary>
+        /// sets the associated wavestream
+        /// </summary>
+        public WaveStream WaveStream
+        {
+            get
+            {
+                return waveStream;
+            }
+            set
+            {
+                waveStream = value;
+                if (waveStream != null)
+                {
+                    bytesPerSample = (waveStream.WaveFormat.BitsPerSample / 8) * waveStream.WaveFormat.Channels;
+                }
+                this.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// The zoom level, in samples per pixel
+        /// </summary>
+        public int SamplesPerPixel
+        {
+            get
+            {
+                return samplesPerPixel;
+            }
+            set
+            {
+                samplesPerPixel = Math.Max(1, value);
+                this.Invalidate();
+            }
+        }
+
+        /// <summary>
+        /// Start position (currently in bytes)
+        /// </summary>
+        public long StartPosition
+        {
+            get
+            {
+                return startPosition;
+            }
+            set
+            {
+                startPosition = value;
+            }
+        }
+
+        /// <summary> 
+        /// Clean up any resources being used.
+        /// </summary>
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                if (components != null)
+                {
+                    components.Dispose();
+                }
+            }
+            base.Dispose(disposing);
+        }
+
+        /// <summary>
+        /// <see cref="Control.OnPaint"/>
+        /// </summary>
+        protected override void OnPaint(PaintEventArgs e)
+        {
+            if (waveStream != null)
+            {
+                waveStream.Position = 0;
+                int bytesRead;
+                byte[] waveData = new byte[samplesPerPixel * bytesPerSample];
+                waveStream.Position = startPosition + (e.ClipRectangle.Left * bytesPerSample * samplesPerPixel);
+
+
+
+                using (Pen linePen = new Pen(PenColor, PenWidth))
+                {
+                    for (float x = e.ClipRectangle.X; x < e.ClipRectangle.Right; x += 1)
+                    {
+                        short low = 0;
+                        short high = 0;
+                        bytesRead = waveStream.Read(waveData, 0, samplesPerPixel * bytesPerSample);
+                        if (bytesRead == 0)
+                            break;
+                        for (int n = 0; n < bytesRead; n += 2)
+                        {
+                            short sample = BitConverter.ToInt16(waveData, n);
+                            if (sample < low) low = sample;
+                            if (sample > high) high = sample;
+                        }
+                        float lowPercent = ((((float)low) - short.MinValue) / ushort.MaxValue);
+                        float highPercent = ((((float)high) - short.MinValue) / ushort.MaxValue);
+                        e.Graphics.DrawLine(linePen, x, this.Height * lowPercent, x, this.Height * highPercent);
+                    }
+                }
+            }
+
+            base.OnPaint(e);
+        }
+
+
+        #region Component Designer generated code
+        /// <summary> 
+        /// Required method for Designer support - do not modify 
+        /// the contents of this method with the code editor.
+        /// </summary>
+        private void InitializeComponent()
+        {
+            this.SuspendLayout();
+            // 
+            // CustomWaveViewer
+            // 
+            this.Name = "CustomWaveViewer";
+            this.Size = new System.Drawing.Size(681, 398);
+            this.ResumeLayout(false);
+
+        }
+        #endregion
     }
 }
