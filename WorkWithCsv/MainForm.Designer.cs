@@ -32,24 +32,23 @@
             System.Windows.Forms.DataGridViewCellStyle dataGridViewCellStyle1 = new System.Windows.Forms.DataGridViewCellStyle();
             this.btnAdd = new System.Windows.Forms.Button();
             this.dataGridView = new System.Windows.Forms.DataGridView();
-            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
-            this.fieldsBindingSource = new System.Windows.Forms.BindingSource(this.components);
             this.label4 = new System.Windows.Forms.Label();
             this.descBox = new System.Windows.Forms.TextBox();
             this.btnSave = new System.Windows.Forms.Button();
             this.flowLayoutPanel1 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel2 = new System.Windows.Forms.FlowLayoutPanel();
             this.flowLayoutPanel3 = new System.Windows.Forms.FlowLayoutPanel();
-            this.customWaveViewer1 = new ReVIOS.CustomWaveViewer();
             this.flowLayoutPanel4 = new System.Windows.Forms.FlowLayoutPanel();
-            this.customWaveViewer2 = new ReVIOS.CustomWaveViewer();
             this.flowLayoutPanel5 = new System.Windows.Forms.FlowLayoutPanel();
             this.dataGridOfMax = new System.Windows.Forms.DataGridView();
             this.flowLayoutPanel6 = new System.Windows.Forms.FlowLayoutPanel();
             this.btnCreateReport = new System.Windows.Forms.Button();
             this.progressBarDL = new System.Windows.Forms.ProgressBar();
+            this.customWaveViewer1 = new ReVIOS.CustomWaveViewer();
+            this.customWaveViewer2 = new ReVIOS.CustomWaveViewer();
+            this.dataGridViewTextBoxColumn1 = new System.Windows.Forms.DataGridViewTextBoxColumn();
+            this.fieldsBindingSource = new System.Windows.Forms.BindingSource(this.components);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).BeginInit();
-            ((System.ComponentModel.ISupportInitialize)(this.fieldsBindingSource)).BeginInit();
             this.flowLayoutPanel1.SuspendLayout();
             this.flowLayoutPanel2.SuspendLayout();
             this.flowLayoutPanel3.SuspendLayout();
@@ -57,6 +56,7 @@
             this.flowLayoutPanel5.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.dataGridOfMax)).BeginInit();
             this.flowLayoutPanel6.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.fieldsBindingSource)).BeginInit();
             this.SuspendLayout();
             // 
             // btnAdd
@@ -93,17 +93,6 @@
             this.dataGridView.Size = new System.Drawing.Size(283, 544);
             this.dataGridView.TabIndex = 1;
             this.dataGridView.DoubleClick += new System.EventHandler(this.dataGridView_DoubleClick);
-            // 
-            // dataGridViewTextBoxColumn1
-            // 
-            this.dataGridViewTextBoxColumn1.DataPropertyName = "Date";
-            this.dataGridViewTextBoxColumn1.HeaderText = "Date";
-            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
-            this.dataGridViewTextBoxColumn1.ReadOnly = true;
-            // 
-            // fieldsBindingSource
-            // 
-            this.fieldsBindingSource.DataSource = typeof(ReVIOS.Fields);
             // 
             // label4
             // 
@@ -166,19 +155,6 @@
             this.flowLayoutPanel3.Size = new System.Drawing.Size(916, 573);
             this.flowLayoutPanel3.TabIndex = 0;
             // 
-            // customWaveViewer1
-            // 
-            this.customWaveViewer1.Dock = System.Windows.Forms.DockStyle.Top;
-            this.customWaveViewer1.Location = new System.Drawing.Point(3, 3);
-            this.customWaveViewer1.Name = "customWaveViewer1";
-            this.customWaveViewer1.PenColor = System.Drawing.Color.DodgerBlue;
-            this.customWaveViewer1.PenWidth = 1F;
-            this.customWaveViewer1.SamplesPerPixel = 128;
-            this.customWaveViewer1.Size = new System.Drawing.Size(890, 570);
-            this.customWaveViewer1.StartPosition = ((long)(0));
-            this.customWaveViewer1.TabIndex = 0;
-            this.customWaveViewer1.WaveStream = null;
-            // 
             // flowLayoutPanel4
             // 
             this.flowLayoutPanel4.Controls.Add(this.customWaveViewer2);
@@ -186,18 +162,6 @@
             this.flowLayoutPanel4.Name = "flowLayoutPanel4";
             this.flowLayoutPanel4.Size = new System.Drawing.Size(916, 207);
             this.flowLayoutPanel4.TabIndex = 0;
-            // 
-            // customWaveViewer2
-            // 
-            this.customWaveViewer2.Location = new System.Drawing.Point(3, 3);
-            this.customWaveViewer2.Name = "customWaveViewer2";
-            this.customWaveViewer2.PenColor = System.Drawing.Color.DodgerBlue;
-            this.customWaveViewer2.PenWidth = 1F;
-            this.customWaveViewer2.SamplesPerPixel = 128;
-            this.customWaveViewer2.Size = new System.Drawing.Size(913, 204);
-            this.customWaveViewer2.StartPosition = ((long)(0));
-            this.customWaveViewer2.TabIndex = 0;
-            this.customWaveViewer2.WaveStream = null;
             // 
             // flowLayoutPanel5
             // 
@@ -242,6 +206,42 @@
             this.progressBarDL.Size = new System.Drawing.Size(255, 23);
             this.progressBarDL.TabIndex = 1;
             // 
+            // customWaveViewer1
+            // 
+            this.customWaveViewer1.Dock = System.Windows.Forms.DockStyle.Top;
+            this.customWaveViewer1.Location = new System.Drawing.Point(3, 3);
+            this.customWaveViewer1.Name = "customWaveViewer1";
+            this.customWaveViewer1.PenColor = System.Drawing.Color.DodgerBlue;
+            this.customWaveViewer1.PenWidth = 1F;
+            this.customWaveViewer1.SamplesPerPixel = 128;
+            this.customWaveViewer1.Size = new System.Drawing.Size(890, 570);
+            this.customWaveViewer1.StartPosition = ((long)(0));
+            this.customWaveViewer1.TabIndex = 0;
+            this.customWaveViewer1.WaveStream = null;
+            // 
+            // customWaveViewer2
+            // 
+            this.customWaveViewer2.Location = new System.Drawing.Point(3, 3);
+            this.customWaveViewer2.Name = "customWaveViewer2";
+            this.customWaveViewer2.PenColor = System.Drawing.Color.CadetBlue;
+            this.customWaveViewer2.PenWidth = 1F;
+            this.customWaveViewer2.SamplesPerPixel = 128;
+            this.customWaveViewer2.Size = new System.Drawing.Size(913, 204);
+            this.customWaveViewer2.StartPosition = ((long)(0));
+            this.customWaveViewer2.TabIndex = 0;
+            this.customWaveViewer2.WaveStream = null;
+            // 
+            // dataGridViewTextBoxColumn1
+            // 
+            this.dataGridViewTextBoxColumn1.DataPropertyName = "Date";
+            this.dataGridViewTextBoxColumn1.HeaderText = "Date";
+            this.dataGridViewTextBoxColumn1.Name = "dataGridViewTextBoxColumn1";
+            this.dataGridViewTextBoxColumn1.ReadOnly = true;
+            // 
+            // fieldsBindingSource
+            // 
+            this.fieldsBindingSource.DataSource = typeof(ReVIOS.Fields);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(8F, 16F);
@@ -257,7 +257,6 @@
             this.Text = "ReVIOS";
             this.Load += new System.EventHandler(this.Form1_Load);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridView)).EndInit();
-            ((System.ComponentModel.ISupportInitialize)(this.fieldsBindingSource)).EndInit();
             this.flowLayoutPanel1.ResumeLayout(false);
             this.flowLayoutPanel1.PerformLayout();
             this.flowLayoutPanel2.ResumeLayout(false);
@@ -266,6 +265,7 @@
             this.flowLayoutPanel5.ResumeLayout(false);
             ((System.ComponentModel.ISupportInitialize)(this.dataGridOfMax)).EndInit();
             this.flowLayoutPanel6.ResumeLayout(false);
+            ((System.ComponentModel.ISupportInitialize)(this.fieldsBindingSource)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 

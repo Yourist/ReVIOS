@@ -22,16 +22,15 @@ namespace ReVIOS
         {
             if (waveStream == null) return;
 
-            int samples = (int)(waveStream.Length / bytesPerSample); //определение количества срезов в дорожке
-            startPosition = 0; //отсчет от начала дорожки
-            SamplesPerPixel = samples / this.Width; // Вмещаем срезы в ширину окна
+            int samples = (int)(waveStream.Length / bytesPerSample);
+            startPosition = 0;
+            SamplesPerPixel = samples / this.Width;
         }
 
         public void Zoom(int leftSample, int rightSample)
         {
             startPosition = leftSample * bytesPerSample;
             SamplesPerPixel = (rightSample - leftSample) / this.Width;
-
         }
 
         private Point mousePos, startPos;
@@ -39,15 +38,17 @@ namespace ReVIOS
 
         protected override void OnMouseDown(MouseEventArgs e)
         {
-            if (e.Button == MouseButtons.Left)
+            if (e.Button == System.Windows.Forms.MouseButtons.Left)
             {
                 startPos = e.Location;
                 mousePos = new Point(-1, -1);
                 mouseDrag = true;
                 DrawVerticalLine(e.X);
             }
+
             base.OnMouseDown(e);
         }
+
         protected override void OnMouseMove(MouseEventArgs e)
         {
             if (mouseDrag)
@@ -61,7 +62,7 @@ namespace ReVIOS
 
         protected override void OnMouseUp(MouseEventArgs e)
         {
-            if (mouseDrag && e.Button == MouseButtons.Left)
+            if (mouseDrag && e.Button == System.Windows.Forms.MouseButtons.Left)
             {
                 mouseDrag = false;
                 DrawVerticalLine(startPos.X);
@@ -69,33 +70,30 @@ namespace ReVIOS
                 if (mousePos.X == -1) return;
                 DrawVerticalLine(mousePos.X);
 
-
                 int leftSample = (int)(StartPosition / bytesPerSample + samplesPerPixel * Math.Min(startPos.X, mousePos.X));
                 int rightSample = (int)(StartPosition / bytesPerSample + samplesPerPixel * Math.Max(startPos.X, mousePos.X));
                 Zoom(leftSample, rightSample);
             }
+            else if (e.Button == System.Windows.Forms.MouseButtons.Middle) FitToScreen();
 
-            else if (e.Button == MouseButtons.Middle) FitToScreen();
             base.OnMouseUp(e);
         }
-
 
         private void DrawVerticalLine(int x)
         {
             ControlPaint.DrawReversibleLine(PointToScreen(new Point(x, 0)), PointToScreen(new Point(x, Height)), Color.Black);
         }
+
         protected override void OnResize(EventArgs e)
         {
             base.OnResize(e);
             FitToScreen();
         }
 
-
-
         /// <summary> 
         /// Required designer variable.
         /// </summary>
-        private Container components = null;
+        private System.ComponentModel.Container components = null;
         private WaveStream waveStream;
         private int samplesPerPixel = 128;
         private long startPosition;
@@ -191,8 +189,6 @@ namespace ReVIOS
                 byte[] waveData = new byte[samplesPerPixel * bytesPerSample];
                 waveStream.Position = startPosition + (e.ClipRectangle.Left * bytesPerSample * samplesPerPixel);
 
-
-
                 using (Pen linePen = new Pen(PenColor, PenWidth))
                 {
                     for (float x = e.ClipRectangle.X; x < e.ClipRectangle.Right; x += 1)
@@ -226,14 +222,7 @@ namespace ReVIOS
         /// </summary>
         private void InitializeComponent()
         {
-            this.SuspendLayout();
-            // 
-            // CustomWaveViewer
-            // 
-            this.Name = "CustomWaveViewer";
-            this.Size = new System.Drawing.Size(681, 398);
-            this.ResumeLayout(false);
-
+            components = new System.ComponentModel.Container();
         }
         #endregion
     }
